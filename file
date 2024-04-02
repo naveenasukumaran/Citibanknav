@@ -1,0 +1,107 @@
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+
+public class XSLToPDFTransformer {
+
+    public static void main(String[] args) {
+        try {
+            // Source XML file
+            File xmlFile = new File("input.xml");
+            
+            // XSLT file
+            File xsltFile = new File("stylesheet.xsl");
+            
+            // Result PDF file
+            OutputStream pdfOutputStream = new FileOutputStream("output.pdf");
+            
+            // Create a transformer factory
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            
+            // Use the factory to create a template containing the XSL file
+            StreamSource xsltSource = new StreamSource(xsltFile);
+            Transformer transformer = transformerFactory.newTransformer(xsltSource);
+            
+            // Use the transformer to perform the transformation
+            StreamSource source = new StreamSource(xmlFile);
+            transformer.transform(source, new StreamResult(pdfOutputStream));
+            
+            // Close output stream
+            pdfOutputStream.close();
+            
+            System.out.println("PDF transformation complete.");
+        } catch (TransformerConfigurationException e) {
+            e.printStackTrace();
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+<employees>
+    <employee>
+        <name>John Doe</name>
+        <position>Software Engineer</position>
+    </employee>
+    <employee>
+        <name>Jane Smith</name>
+        <position>Project Manager</position>
+    </employee>
+</employees>
+
+<?xml version="1.0" encoding="UTF-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:fo="http://www.w3.org/1999/XSL/Format">
+    
+    <xsl:template match="/">
+        <fo:root xmlns:fo="http://www.w3.org/1999/XSL/Format">
+            <fo:layout-master-set>
+                <fo:simple-page-master master-name="page" page-width="8.5in" page-height="11in"
+                    margin-top="0.5in" margin-bottom="0.5in" margin-left="0.5in" margin-right="0.5in">
+                    <fo:region-body margin-top="0.5in" margin-bottom="0.5in"/>
+                </fo:simple-page-master>
+            </fo:layout-master-set>
+            
+            <fo:page-sequence master-reference="page">
+                <fo:flow flow-name="xsl-region-body">
+                    <fo:block font-size="16pt" text-align="center" margin-bottom="20pt">Employee List</fo:block>
+                    <fo:table width="100%" table-layout="fixed">
+                        <fo:table-column column-width="50%"/>
+                        <fo:table-column column-width="50%"/>
+                        <fo:table-header>
+                            <fo:table-row>
+                                <fo:table-cell font-weight="bold" border="solid" border-width="1pt" padding="5pt">
+                                    <fo:block>Name</fo:block>
+                                </fo:table-cell>
+                                <fo:table-cell font-weight="bold" border="solid" border-width="1pt" padding="5pt">
+                                    <fo:block>Position</fo:block>
+                                </fo:table-cell>
+                            </fo:table-row>
+                        </fo:table-header>
+                        <fo:table-body>
+                            <xsl:for-each select="employees/employee">
+                                <fo:table-row>
+                                    <fo:table-cell border="solid" border-width="1pt" padding="5pt">
+                                        <fo:block><xsl:value-of select="name"/></fo:block>
+                                    </fo:table-cell>
+                                    <fo:table-cell border="solid" border-width="1pt" padding="5pt">
+                                        <fo:block><xsl:value-of select="position"/></fo:block>
+                                    </fo:table-cell>
+                                </fo:table-row>
+                            </xsl:for-each>
+                        </fo:table-body>
+                    </fo:table>
+                </fo:flow>
+            </fo:page-sequence>
+        </fo:root>
+    </xsl:template>
+</xsl:stylesheet>
